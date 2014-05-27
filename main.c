@@ -101,7 +101,7 @@ int main(){
 	}
 	/* send SQL query */
 	//Todo dynamic number
-	if (mysql_query(conn, "SELECT userpk, lastname, firstname, email FROM user_data WHERE itime > '2012' ORDER BY firstname, lastname ASC")) {
+	if (mysql_query(conn, "SELECT userpk, lastname, firstname, email FROM user_data WHERE itime > '2012' ORDER BY firstname, lastname ASC LIMIT 10000")) {
 		fprintf(stderr, "%s\n", mysql_error(conn));
 		return 1;
 	}
@@ -193,6 +193,7 @@ int main(){
 			tempLev1 = levenshtein(firstname1,firstname2);
 			tempLev2 = levenshtein(lastname1,lastname2);
 			
+			//here's the wurm
 			if(strcmp(email1,email2)==0){
 				isDupe = 1;
 			}else if(tempLev1 < 3 && tempLev2 < 3){
