@@ -84,13 +84,13 @@ int main(){
 	MYSQL *conn;
 	MYSQL_RES *res;
 	MYSQL_ROW row;
-	char *server = "10.49.0.16";
-	char *user = "stba";
-	char *password = "UB2kiML8"; /* set me first */
-	char *database = "portal_content";
+	char *server = "";
+	char *user = "";
+	char *password = ""; /* set me first */
+	char *database = "";
 	//Todo dynamic number
 	int  i = 0;
-	int  z, y, x;
+	int volatile z, y, x;
 
 	conn = mysql_init(NULL);
 	/* Connect to database */
@@ -101,7 +101,7 @@ int main(){
 	}
 	/* send SQL query */
 	//Todo dynamic number
-	if (mysql_query(conn, "SELECT userpk, lastname, firstname, email FROM user_data WHERE itime > '2012' ORDER BY firstname, lastname ASC LIMIT 10000")) {
+	if (mysql_query(conn, "SELECT use ASC LIMIT 10000")) {
 		fprintf(stderr, "%s\n", mysql_error(conn));
 		return 1;
 	}
@@ -140,11 +140,11 @@ int main(){
 	int arrSize = i;
 	
 
-	unsigned long totalLevenshtein=0;
-	unsigned long tempTotalLevenshtein=0;
-	float averageLevenshtein=0;
+	unsigned long volatile totalLevenshtein=0;
+	unsigned long volatile tempTotalLevenshtein=0;
+	float  volatile averageLevenshtein=0;
 	unsigned long lev=0;
-	int tempLev1, tempLev2;
+	int volatile tempLev1, tempLev2, tempLev3;
 	int isDupe = 0;
 	static volatile float percentage;
 	
@@ -179,7 +179,10 @@ int main(){
 		isDupe = 0;	
 		
 		for (x = 0; x <= arrSize-1 || isDupe ==1 ; x++){
-			
+		
+			tempLev1 = 0;
+			tempLev2 = 0;
+			tempLev3 = 0;
 		
 			firstname1=the_array[index1].firstname;
 			firstname2=the_array[x].firstname;
@@ -192,21 +195,34 @@ int main(){
 			
 			tempLev1 = levenshtein(firstname1,firstname2);
 			tempLev2 = levenshtein(lastname1,lastname2);
+			tempLev3 = levenshtein(email1,email2);
 			
-			//here's the wurm
-			if(strcmp(email1,email2)==0){
-				isDupe = 1;
-			}else if(tempLev1 < 3 && tempLev2 < 3){
-				tempTotalLevenshtein = tempTotalLevenshtein + tempLev1 + tempLev2;
-				y++;
+			if(tempLev1 <= 1){
+				tempTotalLevenshtein = tempTotalLevenshtein + tempLev1;
 				y++;
 			}
+			
+			if(tempLev2 <= 1){
+				tempTotalLevenshtein = tempTotalLevenshtein + tempLev2;
+				y++;
+			}
+			
+			if(tempLev3 <= 1){
+				tempTotalLevenshtein = tempTotalLevenshtein + tempLev3;
+				y++;
+			}
+			
+			//here's the wurm
+			//if(strcmp(email1,email2)==0){
+			//	isDupe = 1;
+			//}else if(tempLev1 < 3 && tempLev2 < 3){
+			//	tempTotalLevenshtein = tempTotalLevenshtein + tempLev1 + tempLev2;
+			//	y++;
+			//	y++;
+			//}
 		}
 		
-		averageLevenshtein = tempTotalLevenshtein / y;
-		
-		
-		tempTotalLevenshtein=0;
+		averageLevenshtein = tempTotalLevenshtein / (float) y;
 		
 		fprintf(out, "%d;%s;%s;%s;%f;%d\n", pk1, firstname1, lastname1, email1, averageLevenshtein, isDupe);
 		
@@ -216,13 +232,15 @@ int main(){
 		
 		//This for the human readable output
 		if(isDupe == 1 || averageLevenshtein<1){
-  			printf("%c[1;32m%d    -   %3.2f%% Done - %d %s %s %s Average Levenshtein distance: %3.2f", 27, isDupe,percentage, pk1, firstname1, lastname1, email1, averageLevenshtein); // red
-		
+  			printf("%c[1;0m%d    -   %c[1;31m%3.2f%% Done - %d %s %s %s Average Levenshtein distance: %3.2f", 27, isDupe, 27, percentage, pk1, firstname1, lastname1, email1, averageLevenshtein); // red
 		}else{
-  			printf("%c[1;0m%d    -   %c[1;31m%3.2f%% Done - %d %s %s %s Average Levenshtein distance: %3.2f", 27, isDupe, 27, percentage, pk1, firstname1, lastname1, email1, averageLevenshtein); // green
+		  	printf("%c[1;32m%d    -   %3.2f%% Done - %d %s %s %s Average Levenshtein distance: %3.2f", 27, isDupe,percentage, pk1, firstname1, lastname1, email1, averageLevenshtein); // green
 		}
-		
 		printf("%c[1;0m\n",27);
+
+		
+		tempTotalLevenshtein=0;
+		averageLevenshtein=0;
 		
 		if(isDupe == 1){
 				getchar();
